@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>FoodRescue.pk Mobile</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{--green:#16a34a;--green-dark:#15803d;--green-light:#f0fdf4;--white:#fff;--bg:#f8fafc;--text:#111827;--muted:#6b7280;--border:#e5e7eb;--red:#ef4444;--blue:#3b82f6;--orange:#f59e0b;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);max-width:390px;margin:0 auto;min-height:100vh;position:relative;overflow-x:hidden;}
+
+/* screens */
+.screen{display:none;min-height:100vh;flex-direction:column;}
+.screen.active{display:flex;}
+
+/* splash */
+.splash{background:linear-gradient(160deg,#14532d,#15803d,#16a34a);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;text-align:center;}
+.splash-logo{width:80px;height:80px;background:rgba(255,255,255,0.15);border-radius:24px;display:flex;align-items:center;justify-content:center;font-size:40px;margin-bottom:1.5rem;backdrop-filter:blur(4px);}
+.splash-title{font-size:32px;font-weight:800;color:white;margin-bottom:6px;}
+.splash-tag{font-size:16px;font-weight:600;color:rgba(255,255,255,0.85);margin-bottom:6px;}
+.splash-sub{font-size:13px;color:rgba(255,255,255,0.65);margin-bottom:2.5rem;}
+.splash-stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;margin-bottom:2rem;}
+.splash-stat{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:14px;padding:16px;backdrop-filter:blur(4px);}
+.splash-stat .sn{font-size:26px;font-weight:800;color:white;display:block;}
+.splash-stat .sl{font-size:12px;color:rgba(255,255,255,0.7);}
+
+/* nav bar bottom */
+.bottom-nav{background:white;border-top:1px solid var(--border);display:flex;padding:8px 0 20px;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:390px;z-index:100;box-shadow:0 -2px 10px rgba(0,0,0,0.08);}
+.bn-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 0;}
+.bn-icon{font-size:22px;line-height:1;}
+.bn-label{font-size:10px;font-weight:600;color:var(--muted);}
+.bn-item.active .bn-label{color:var(--green);}
+.bn-item.active .bn-icon{filter:none;}
+
+/* top bar */
+.top-bar{background:linear-gradient(135deg,#16a34a,#15803d);padding:50px 16px 16px;display:flex;align-items:center;justify-content:space-between;}
+.top-bar h1{font-size:18px;font-weight:700;color:white;}
+.top-bar-right{display:flex;gap:8px;align-items:center;}
+.icon-btn{background:rgba(255,255,255,0.15);border:none;width:36px;height:36px;border-radius:10px;color:white;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;}
+.notif-dot{position:absolute;top:4px;right:4px;width:8px;height:8px;background:var(--red);border-radius:50%;}
+
+/* content area */
+.content{flex:1;padding:16px;padding-bottom:90px;overflow-y:auto;}
+
+/* cards */
+.card{background:white;border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+.card-title{font-size:15px;font-weight:700;margin-bottom:12px;}
+
+/* buttons */
+.btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:13px 20px;border-radius:12px;font-size:15px;font-weight:600;border:none;cursor:pointer;font-family:inherit;width:100%;transition:all 0.15s;}
+.btn-green{background:var(--green);color:white;}
+.btn-green:active{background:var(--green-dark);transform:scale(0.98);}
+.btn-outline-green{background:transparent;color:var(--green);border:1.5px solid var(--green);}
+.btn-sm{padding:8px 14px;font-size:13px;width:auto;border-radius:8px;}
+.btn-danger{background:var(--red);color:white;}
+
+/* welcome banner */
+.welcome-card{background:linear-gradient(135deg,#16a34a,#15803d);border-radius:16px;padding:16px;margin-bottom:14px;color:white;}
+.welcome-card h2{font-size:17px;font-weight:700;margin-bottom:4px;}
+.welcome-card p{font-size:13px;color:rgba(255,255,255,0.8);}
+
+/* stat row */
+.stat-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.stat-box{background:white;border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,0.05);}
+.stat-box .sn{font-size:26px;font-weight:800;display:block;margin-bottom:2px;}
+.stat-box .sl{font-size:12px;color:var(--muted);font-weight:500;}
+.stat-box.g .sn{color:var(--green);}
+.stat-box.b .sn{color:var(--blue);}
+.stat-box.o .sn{color:var(--orange);}
+.stat-box.d .sn{color:#14532d;}
+
+/* form */
+.form-group{margin-bottom:14px;}
+.form-group label{display:block;font-size:13px;font-weight:600;color:var(--text);margin-bottom:5px;}
+.fr-input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:14px;font-family:inherit;color:var(--text);background:white;outline:none;}
+.fr-input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(22,163,74,0.1);}
+.form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+/* badge */
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-active{background:#dcfce7;color:#15803d;}
+.badge-claimed{background:#dbeafe;color:#1d4ed8;}
+.badge-completed{background:#d1fae5;color:#065f46;}
+.badge-expired{background:#f3f4f6;color:#6b7280;}
+.badge-cooked{background:#dcfce7;color:#15803d;}
+.badge-packaged{background:#dbeafe;color:#1d4ed8;}
+.badge-raw{background:#d1fae5;color:#065f46;}
+.badge-bakery{background:#fef3c7;color:#92400e;}
+
+/* listing card */
+.listing-card{background:white;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+.listing-card img{width:100%;height:140px;object-fit:cover;}
+.listing-card .food-ph{height:140px;background:linear-gradient(135deg,#f0fdf4,#dcfce7);display:flex;align-items:center;justify-content:center;font-size:48px;}
+.listing-card .lc-body{padding:12px 14px;}
+.listing-card .lc-name{font-size:15px;font-weight:700;margin-bottom:6px;}
+.lc-meta{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:3px;}
+
+/* feed filter chips */
+.filter-chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px;scrollbar-width:none;}
+.filter-chips::-webkit-scrollbar{display:none;}
+.chip{padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);background:white;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;color:var(--text);}
+.chip.active{background:var(--green);color:white;border-color:var(--green);}
+
+/* divider */
+.divider{display:flex;align-items:center;gap:10px;margin:16px 0;}
+.divider hr{flex:1;border:none;border-top:1px solid var(--border);}
+.divider span{font-size:12px;color:var(--muted);}
+
+/* empty state */
+.empty{text-align:center;padding:2rem 1rem;}
+.empty .ei{font-size:48px;margin-bottom:12px;display:block;}
+.empty p{color:var(--muted);font-size:14px;margin-bottom:14px;}
+
+/* alert */
+.alert{padding:12px 14px;border-radius:10px;font-size:13px;margin-bottom:12px;}
+.alert-warn{background:#fffbeb;border:1px solid #fde68a;color:#92400e;}
+.alert-success{background:#f0fdf4;border:1px solid #bbf7d0;color:#14532d;}
+
+/* modal */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:999;align-items:flex-end;justify-content:center;}
+.modal-bg.show{display:flex;}
+.modal-sheet{background:white;border-radius:20px 20px 0 0;padding:24px;width:100%;max-width:390px;animation:slideUp 0.2s ease;}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-sheet h3{font-size:17px;font-weight:700;margin-bottom:8px;}
+.modal-sheet p{font-size:14px;color:var(--muted);margin-bottom:18px;}
+.modal-btns{display:flex;gap:10px;}
+.modal-btns .btn{flex:1;}
+
+/* section label */
+.sec-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin-bottom:8px;}
+
+/* progress bar */
+.prog-wrap{background:#e5e7eb;border-radius:20px;height:8px;overflow:hidden;margin-top:6px;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--green),#22c55e);border-radius:20px;}
+</style>
+</head>
+<body>
+
+<!-- SPLASH SCREEN -->
+<div class="screen active" id="screen-splash">
+  <div class="splash">
+    <div class="splash-logo">🌿</div>
+    <div class="splash-title">FoodRescue.pk</div>
+    <div class="splash-tag">Saving food. Feeding lives.</div>
+    <div class="splash-sub">Islamabad's first verified food rescue platform</div>
+    <div class="splash-stats">
+      <div class="splash-stat"><span class="sn" id="mealCounter">0</span><span class="sl">Meals Rescued</span></div>
+      <div class="splash-stat"><span class="sn">53</span><span class="sl">NGOs Connected</span></div>
+    </div>
+    <button class="btn btn-outline-green" style="background:rgba(255,255,255,0.15);color:white;border-color:rgba(255,255,255,0.4);margin-bottom:12px;" onclick="showScreen('screen-login')">Get Started →</button>
+    <p style="color:rgba(255,255,255,0.6);font-size:13px;">Already have an account? <span style="color:white;font-weight:600;cursor:pointer;" onclick="showScreen('screen-login')">Login</span></p>
+    <p style="margin-top:2rem;font-size:11px;color:rgba(255,255,255,0.4);">Air University Islamabad • FYP 2026</p>
+  </div>
+</div>
+
+<!-- LOGIN SCREEN -->
+<div class="screen" id="screen-login">
+  <div style="background:linear-gradient(160deg,#14532d,#16a34a);padding:60px 24px 30px;text-align:center;">
+    <div style="font-size:28px;font-weight:800;color:white;margin-bottom:4px;">🌿 FoodRescue.pk</div>
+    <p style="color:rgba(255,255,255,0.75);font-size:13px;">Your surplus is someone's survival</p>
+  </div>
+  <div style="background:white;flex:1;border-radius:24px 24px 0 0;margin-top:-16px;padding:24px;">
+    <h2 style="font-size:22px;font-weight:800;margin-bottom:4px;">Welcome Back</h2>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:20px;">Login to continue your food rescue journey</p>
+    <div class="form-group">
+      <label>Email</label>
+      <div style="position:relative;">
+        <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:16px;">✉️</span>
+        <input id="loginEmail" type="email" class="fr-input" placeholder="your@email.com" style="padding-left:38px;"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <div style="position:relative;">
+        <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:16px;">🔒</span>
+        <input id="loginPass" type="password" class="fr-input" placeholder="••••••••" style="padding-left:38px;"/>
+      </div>
+    </div>
+    <div style="text-align:right;margin-bottom:16px;"><span style="color:var(--green);font-size:13px;font-weight:600;cursor:pointer;">Forgot Password?</span></div>
+    <button class="btn btn-green" onclick="doLogin()">Login →</button>
+    <div class="divider"><hr/><span>New to FoodRescue.pk?</span><hr/></div>
+    <button class="btn btn-outline-green" style="margin-bottom:10px;" onclick="showScreen('screen-register-donor')">Register as Food Donor</button>
+    <button class="btn btn-outline-green" onclick="showScreen('screen-register-ngo')">Register as NGO</button>
+  </div>
+</div>
+
+<!-- REGISTER DONOR -->
+<div class="screen" id="screen-register-donor">
+  <div style="background:linear-gradient(135deg,#14532d,#16a34a);padding:50px 20px 20px;">
+    <button onclick="showScreen('screen-login')" style="background:rgba(255,255,255,0.2);border:none;color:white;padding:8px 14px;border-radius:10px;font-size:13px;cursor:pointer;margin-bottom:12px;">← Back</button>
+    <h1 style="color:white;font-size:22px;font-weight:800;">Join as Food Donor 🏪</h1>
+    <p style="color:rgba(255,255,255,0.75);font-size:13px;">Start rescuing food today</p>
+  </div>
+  <div style="background:white;flex:1;border-radius:24px 24px 0 0;margin-top:-12px;padding:20px;overflow-y:auto;padding-bottom:100px;">
+    <div class="form-grid-2">
+      <div class="form-group"><label>Full Name</label><input type="text" class="fr-input" placeholder="John Doe"/></div>
+      <div class="form-group"><label>Organization</label><input type="text" class="fr-input" placeholder="Restaurant Name"/></div>
+    </div>
+    <div class="form-group"><label>Email Address</label><input type="email" class="fr-input" placeholder="your@email.com"/></div>
+    <div class="form-group"><label>Phone Number</label><input type="tel" class="fr-input" placeholder="+92-300-1234567"/></div>
+    <div class="form-grid-2">
+      <div class="form-group"><label>Address</label><input type="text" class="fr-input" placeholder="Street Address"/></div>
+      <div class="form-group"><label>City</label><input type="text" class="fr-input" placeholder="Islamabad"/></div>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-group"><label>Password</label><input type="password" class="fr-input" placeholder="••••••••"/></div>
+      <div class="form-group"><label>Confirm</label><input type="password" class="fr-input" placeholder="••••••••"/></div>
+    </div>
+    <button class="btn btn-green" onclick="showScreen('screen-donor-dashboard');setRole('donor')">Register Now →</button>
+    <p style="text-align:center;margin-top:14px;font-size:13px;color:var(--muted);">Already have an account? <span style="color:var(--green);font-weight:600;cursor:pointer;" onclick="showScreen('screen-login')">Login</span></p>
+  </div>
+</div>
+
+<!-- REGISTER NGO -->
+<div class="screen" id="screen-register-ngo">
+  <div style="background:linear-gradient(135deg,#14532d,#16a34a);padding:50px 20px 20px;">
+    <button onclick="showScreen('screen-login')" style="background:rgba(255,255,255,0.2);border:none;color:white;padding:8px 14px;border-radius:10px;font-size:13px;cursor:pointer;margin-bottom:12px;">← Back</button>
+    <h1 style="color:white;font-size:22px;font-weight:800;">Register Your NGO 🤝</h1>
+    <p style="color:rgba(255,255,255,0.75);font-size:13px;">Join the verified food rescue network</p>
+  </div>
+  <div style="background:white;flex:1;border-radius:24px 24px 0 0;margin-top:-12px;padding:20px;overflow-y:auto;padding-bottom:100px;">
+    <div class="alert alert-warn">⚠️ Account requires admin approval. You will be notified within 15 seconds after submission.</div>
+    <div class="form-grid-2">
+      <div class="form-group"><label>Rep. Name</label><input type="text" class="fr-input" placeholder="Your Full Name"/></div>
+      <div class="form-group"><label>NGO Name</label><input type="text" class="fr-input" placeholder="Organization Name"/></div>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-group"><label>Email</label><input type="email" class="fr-input" placeholder="ngo@email.com"/></div>
+      <div class="form-group"><label>Phone</label><input type="tel" class="fr-input" placeholder="+92-300-1234567"/></div>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-group"><label>CNIC</label><input type="text" class="fr-input" placeholder="12345-1234567-1"/></div>
+      <div class="form-group"><label>SECP No.</label><input type="text" class="fr-input" placeholder="SECP-12345"/></div>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-group"><label>Password</label><input type="password" class="fr-input" placeholder="••••••••"/></div>
+      <div class="form-group"><label>Confirm</label><input type="password" class="fr-input" placeholder="••••••••"/></div>
+    </div>
+    <div class="form-group"><label>Contact Person</label><input type="text" class="fr-input" placeholder="Primary Contact Name"/></div>
+    <button class="btn btn-green" onclick="showScreen('screen-ngo-pending')">Submit Application →</button>
+  </div>
+</div>
+
+<!-- NGO PENDING — 15 second countdown -->
+<div class="screen" id="screen-ngo-pending">
+  <div style="background:white;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;text-align:center;">
+    <div style="width:72px;height:72px;background:var(--green-light);border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:1.2rem;">🌿</div>
+    <h2 style="font-size:22px;font-weight:800;margin-bottom:6px;">Verifying Your Organization</h2>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:2rem;">Please wait while we review your application details</p>
+
+    <!-- Circular countdown -->
+    <div style="position:relative;width:120px;height:120px;margin-bottom:1.5rem;">
+      <svg width="120" height="120" style="transform:rotate(-90deg);">
+        <circle cx="60" cy="60" r="52" fill="none" stroke="#e5e7eb" stroke-width="8"/>
+        <circle id="countdown-circle" cx="60" cy="60" r="52" fill="none" stroke="#16a34a" stroke-width="8"
+          stroke-dasharray="326.7" stroke-dashoffset="0" stroke-linecap="round"
+          style="transition:stroke-dashoffset 1s linear;"/>
+      </svg>
+      <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+        <span id="countdown-num" style="font-size:28px;font-weight:800;color:var(--green);">15</span>
+        <span style="font-size:11px;color:var(--muted);">seconds</span>
+      </div>
+    </div>
+
+    <!-- Progress bar -->
+    <div style="width:100%;background:#e5e7eb;border-radius:20px;height:8px;margin-bottom:1rem;overflow:hidden;">
+      <div id="countdown-bar" style="height:100%;background:linear-gradient(90deg,#16a34a,#22c55e);border-radius:20px;width:0%;transition:width 1s linear;"></div>
+    </div>
+
+    <p id="countdown-msg" style="color:var(--muted);font-size:13px;font-style:italic;">Verifying organization details...</p>
+  </div>
+</div>
+
+<!-- DONOR DASHBOARD -->
+<div class="screen" id="screen-donor-dashboard">
+  <div class="top-bar">
+    <h1>Dashboard</h1>
+    <div class="top-bar-right">
+      <button class="icon-btn" onclick="showScreen('screen-notifications')">🔔<span class="notif-dot"></span></button>
+      <button class="icon-btn" onclick="showScreen('screen-profile')">👤</button>
+    </div>
+  </div>
+  <div class="content">
+    <div class="welcome-card">
+      <h2>Welcome back, Fatima! 👋</h2>
+      <p>You helped rescue 0 meals. Keep going!</p>
+    </div>
+    <div class="stat-row">
+      <div class="stat-box g"><span class="sn" id="d-total">0</span><span class="sl">Total Posted</span></div>
+      <div class="stat-box b"><span class="sn" id="d-active">0</span><span class="sl">Active</span></div>
+      <div class="stat-box o"><span class="sn" id="d-meals">0</span><span class="sl">Meals Donated</span></div>
+      <div class="stat-box d"><span class="sn" id="d-done">0</span><span class="sl">Completed</span></div>
+    </div>
+    <button class="btn btn-green" style="margin-bottom:14px;" onclick="showScreen('screen-post-listing')">+ Post New Listing</button>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">
+      <div class="card" style="padding:12px;text-align:center;cursor:pointer;" onclick="showScreen('screen-my-listings')"><div style="font-size:22px;">📋</div><div style="font-size:11px;font-weight:600;margin-top:4px;">My Listings</div></div>
+      <div class="card" style="padding:12px;text-align:center;cursor:pointer;" onclick="showScreen('screen-donor-analytics')"><div style="font-size:22px;">📊</div><div style="font-size:11px;font-weight:600;margin-top:4px;">Analytics</div></div>
+      <div class="card" style="padding:12px;text-align:center;cursor:pointer;" onclick="showScreen('screen-profile')"><div style="font-size:22px;">👤</div><div style="font-size:11px;font-weight:600;margin-top:4px;">Profile</div></div>
+    </div>
+    <div class="sec-label">Recent Listings</div>
+    <div id="donor-recent-listings">
+      <div class="empty"><span class="ei">📭</span><p>No listings yet.</p><button class="btn btn-green" style="width:auto;padding:10px 20px;" onclick="showScreen('screen-post-listing')">Post Your First Listing</button></div>
+    </div>
+  </div>
+  <div class="bottom-nav">
+    <div class="bn-item active" onclick="showScreen('screen-donor-dashboard')"><div class="bn-icon">🏠</div><div class="bn-label">Home</div></div>
+    <div class="bn-item" onclick="showScreen('screen-post-listing')"><div class="bn-icon">➕</div><div class="bn-label">Post</div></div>
+    <div class="bn-item" onclick="showScreen('screen-my-listings')"><div class="bn-icon">📋</div><div class="bn-label">Listings</div></div>
+    <div class="bn-item" onclick="showScreen('screen-donor-analytics')"><div class="bn-icon">📊</div><div class="bn-label">Analytics</div></div>
+    <div class="bn-item" onclick="showLogout()"><div class="bn-icon">↪</div><div class="bn-label">Logout</div></div>
+  </div>
+</div>
+
+<!-- POST LISTING -->
+<div class="screen" id="screen-post-listing">
+  <div class="top-bar">
+    <button onclick="showScreen('screen-donor-dashboard')" style="background:rgba(255,255,255,0.2);border:none;color:white;padding:8px 12px;border-radius:10px;cursor:pointer;">← Back</button>
+    <h1>Post Listing</h1>
+    <div style="width:60px;"></div>
+  </div>
+  <div class="content">
+    <div class="form-group"><label>Food Name</label><input id="fn-name" type="text" class="fr-input" placeholder="e.g., Chicken Biryani"/></div>
+    <div class="form-grid-2">
+      <div class="form-group"><label>Category</label>
+        <select id="fn-cat" class="fr-input"><option value="cooked">Cooked</option><option value="packaged">Packaged</option><option value="raw">Raw</option><option value="bakery">Bakery</option></select>
+      </div>
+      <div class="form-group"><label>Quantity</label><input id="fn-qty" type="text" class="fr-input" placeholder="50 servings"/></div>
+    </div>
+    <div class="form-group"><label>Pickup Address</label><input id="fn-addr" type="text" class="fr-input" placeholder="Blue Area, Islamabad"/></div>
+    <div class="form-grid-2">
+      <div class="form-group"><label>From</label><input id="fn-from" type="datetime-local" class="fr-input"/></div>
+      <div class="form-group"><label>Until</label><input id="fn-until" type="datetime-local" class="fr-input"/></div>
+    </div>
+    <div class="form-group"><label>Description</label><textarea id="fn-desc" class="fr-input" rows="2" placeholder="Additional details..."></textarea></div>
+    <div class="form-group">
+      <label>Photo</label>
+      <div style="border:2px dashed var(--border);border-radius:12px;padding:24px;text-align:center;cursor:pointer;" onclick="document.getElementById('fn-photo').click()">
+        <div style="font-size:32px;margin-bottom:6px;">📸</div>
+        <p style="font-size:13px;color:var(--muted);">Tap to upload JPEG/PNG (max 5MB)</p>
+        <input type="file" id="fn-photo" accept="image/*" style="display:none;" onchange="previewPhoto(this)"/>
+      </div>
+      <img id="fn-preview" style="display:none;width:100%;max-height:160px;object-fit:cover;border-radius:10px;margin-top:8px;"/>
+    </div>
+    <div class="alert alert-warn"><strong>Rules:</strong> Max 10 active listings • Future pickup time only • JPEG/PNG under 5MB</div>
+    <button class="btn btn-green" onclick="submitListing()">Publish Listing</button>
+  </div>
+</div>
+
+<!-- MY LISTINGS -->
+<div class="screen" id="screen-my-listings">
+  <div class="top-bar">
+    <button onclick="showScreen('screen-donor-dashboard')" style="background:rgba(255,255,255,0.2);border:none;color:white;padding:8px 12px;border-radius:10px;cursor:pointer;">← Back</button>
+    <h1>My Listings</h1>
+    <div style="width:60px;"></div>
+  </div>
+  <div class="content">
+    <div class="filter-chips" id="listing-filter-chips">
+      <div class="chip active" onclick="filterListings('all',this)">All</div>
+      <div class="chip" onclick="filterListings('active',this)">Active</div>
+      <div class="chip" onclick="filterListings('claimed',this)">Claimed</div>
+      <div class="chip" onclick="filterListings('expired',this)">Expired</div>
+      <div class="chip" onclick="filterListings('completed',this)">Completed</div>
+    </div>
+    <div id="my-listings-container">
+      <div class="empty"><span class="ei">📭</span><p>No listings yet.</p><button class="btn btn-green" style="width:auto;padding:10px 20px;" onclick="showScreen('screen-post-listing')">Post Your First Listing</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- DONOR ANALYTICS -->
+<div class="screen" id="screen-donor-analytics">
+  <div class="top-bar">
+    <button onclick="showScreen('screen-donor-dashboard')" style="background:rgba(255,255,255,0.2);border:none;color:white;padding:8px 12px;border-radius:10px;cursor:pointer;">← Back</button>
+    <h1>Analytics</h1>
+    <div style="width:60px;"></div>
+  </div>
+  <div class="content">
+    <div class="welcome-card"><h2>You rescued 0 meals total!</h2><p>Keep posting to make a bigger impact.</p></div>
+    <div class="stat-row">
+      <div class="stat-box g"><span class="sn">0</span><span class="sl">Posted</span></div>
+      <div class="stat-box b"><span class="sn">0</span><span class="sl">Claimed</span></div>
+      <div class="stat-box o"><span class="sn">0</span><span class="sl">Expired</span></div>
+      <div class="stat-box d"><span class="sn">0</span><span class="sl">Completed</span></div>
+    </div>
+    <div class="card"><div class="card-title">Monthly Overview</div><canvas id="mobileMonthlyChart" height="180"></canvas></div>
+    <div class="card"><div class="card-title">Category Breakdown</div><canvas id="mobileCatChart" height="180"></canvas></div>
+  </div>
+</div>
+
+<!-- NGO DASHBOARD -->
+<div class="screen" id="screen-ngo-dashboard">
+  <div class="top-bar">
+    <h1>NGO Dashboard</h1>
+    <div class="top-bar-right">
+      <button class="icon-btn" onclick="showScreen('screen-notifications')">🔔<span class="notif-dot"></span></button>
+      <button class="icon-btn" onclick="showScreen('screen-profile')">👤</button>
+    </div>
+  </div>
+  <div class="content">
+    <div class="welcome-card">
+      <h2>Welcome, Ansa! 🤝</h2>
+      <p>Hope Foundation is making a difference in Islamabad.</p>
+      <div style="background:rgba(255,255,255,0.15);border-radius:10px;padding:10px;margin-top:10px;display:inline-block;">
+        <span style="font-size:24px;font-weight:800;display:block;" id="ngo-meals-today">0</span>
+        <span style="font-size:11px;color:rgba(255,255,255,0.75);">Meals Rescued Today in Islamabad</span>
+      </div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-box g"><span class="sn">0</span><span class="sl">Active Claims</span></div>
+      <div class="stat-box b"><span class="sn">0</span><span class="sl">Completed</span></div>
+      <div class="stat-box o"><span class="sn">0</span><span class="sl">Total Meals</span></div>
+      <div class="stat-box d"><span class="sn">0</span><span class="sl">Certificates</span></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
+      <button class="btn btn-green" style="font-size:13px;" onclick="showScreen('screen-live-feed')">📋 Live Feed</button>
+      <button class="btn btn-outline-green" style="font-size:13px;" onclick="showScreen('screen-my-claims')">🤝 My Claims</button>
+    </div>
+    <div class="sec-label">Active Claims</div>
+    <div class="empty"><span class="ei">🤝</span><p>No active claims.</p><button class="btn btn-green" style="width:auto;padding:10px 20px;" onclick="showScreen('screen-live-feed')">Browse Live Feed</button></div>
+  </div>
+  <div class="bottom-nav">
+    <div class="bn-item active" onclick="showScreen('screen-ngo-dashboard')"><div class="bn-icon">🏠</div><div class="bn-label">Home</div></div>
+    <div class="bn-item" onclick="showScreen('screen-live-feed')"><div class="bn-icon">📋</div><div class="bn-label">Feed</div></div>
+    <div class="bn-item" onclick="showScreen('screen-my-claims')"><div class="bn-icon">🤝</div><div class="bn-label">Claims</div></div>
+    <div class="bn-item" onclick="showScreen('screen-certificates')"><div class="bn-icon">📜</div><div class="bn-label">Certs</div></div>
+    <div class="bn-item" onclick="showLogout()"><div class="bn-icon">↪</div><div class="bn-label">Logout</div></div>
+  </div>
+</div>
+
+<!-- LIVE FEED -->
+<div class="screen" id="screen-live-feed">
+  <div class="top-bar">
+    <button onclick="showScreen('screen-ngo-dashboard')" style="background:rgba(255,255,255,0.2);border:none;color:white;padding:8px 12px;border-radius:10px;cursor:pointer;">← Back</button>
+    <h1>Live Feed</h1>
+    <div style="width:60px;"></div>
+  </div>
+  <div class="content">
+    <div style="background:var(--green-light);border-radius:12px;padding:12px;text-align:center;margin-bottom:12px;">
+      <p style="font-size:13px;color:var(--muted);">Every claim rescues food from being wasted</p>
+      <span style="font-size:22px;font-weight:800;color:var(--green);" id="feed-meals">0</span>
+      <span style="font-size:12px;color:var(--muted);"> meals rescued today</span>
+    </div>
+    <div class="filter-chips" id="feed-chips">
+      <div class="chip active" onclick="filterFeed('all',this)">All</div>
+      <div class="chip" onclick="filterFeed('cooked',this)">Cooked</div>
+      <div class="chip" onclick="filterFeed('packaged',this)">Packaged</div>
+      <div class="chip" onclick="filterFeed('raw',this)">Raw</div>
+      <div class="chip" onclick="filterFeed('bakery',this)">Bakery</div>
+    </div>
+    <div id="feed-container"></div>
+  </div>
+</div>
+
+<!-- MY CLAIMS -->
+<div class="screen" id="screen-my-claims">
+  <div class="top-bar">
+    <button onclick="showScreen('screen-ngo-dashboard')" style="background:rgba(255,255,255,0.2);border:none;color:white;padding:8px 12px;border-radius:10px;cursor:pointer;">← Back</button>
+    <h1>My Claims</h1>
+    <div style="width:60px;"></div>
+  </div>
+  <div class="content">
+    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:12px;margin-bottom:12px;">
+      <div style="font-size:13px;font-weight:600;color:#1e40af;margin-bottom:6px;" id="claims-count-label">0 of 5 active claims</div>
+      <div class="prog-wrap"><div class="prog-fill" id="claims-prog" style="width:0%;background:linear-gradient(90deg,#3b82f6,#2563eb);"></div></div>
+    </div>
+    <div class="filter-chips">
+      <div class="chip active" onclick="filterClaims('all',this)">All</div>
+      <div class="chip" onclick="filterClaims('active',this)">Confirmed</div>
+      <div class="chip" onclick="filterClaims('completed',this)">Completed</div>
+      <div class="chip" onclick="filterClaims('cancelled',this)">Cancelled</div>
+    </div>
+    <div id="claims-container">
+      <div class="empty"><span class="ei">🤝</span><p>No claims yet.</p><button class="btn btn-green" style="width:auto;padding:10px 20px;" onclick="showScreen('screen-live-feed')">Browse Live Feed</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- CERTIFICATES -->
+<div class="screen" id="screen-certificates">
+  <div class="top-bar">
+    <button onclick="showScreen('screen-ngo-dashboard')" style="background:rgba(255,255,255,0.2);border:none;color:white;padding:8px 12px;border-radius:10px;cursor:pointer;">← Back</button>
+    <h1>Certificates</h1>
+    <div style="width:60px;"></div>
+  </div>
+  <div class="content">
+    <div class="alert-warn alert">📜 <strong>Impact Certificates</strong> are auto-generated on the 1st of every month for NGOs. Use for SECP registration and fundraising.</div>
+    <div class="card" style="text-align:center;padding:32px 16px;">
+      <div style="font-size:64px;margin-bottom:12px;">🔒</div>
+      <h3 style="font-size:18px;font-weight:800;margin-bottom:6px;">Certificates Locked</h3>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:16px;">Complete 15 more rescues to unlock certificates</p>
+      <div style="text-align:left;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:4px;"><span>0 of 15 rescues completed</span><span>0%</span></div>
+        <div class="prog-wrap"><div class="cert-progress-fill prog-fill" style="width:0%;"></div></div>
+      </div>
+      <p style="color:var(--muted);font-size:12px;margin-top:14px;">Keep rescuing food to unlock your impact certificates!</p>
+      <button class="btn btn-green" style="margin-top:16px;" onclick="showScreen('screen-live-feed')">Browse Live Feed</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFICATIONS -->
+<div class="screen" id="screen-notifications">
+  <div class="top-bar">
+    <button onclick="history.back()||showScreen('screen-donor-dashboard')" style="background:rgba(255,255,255,0.2);border:none;color:white;padding:8px 12px;border-radius:10px;cursor:pointer;">← Back</button>
+    <h1>Notifications</h1>
+    <div style="width:60px;"></div>
+  </div>
+  <div class="content">
+    <div class="empty"><span class="ei">✅</span><p>All caught up!</p></div>
+  </div>
+</div>
+
+<!-- PROFILE -->
+<div class="screen" id="screen-profile">
+  <div class="top-bar">
+    <button onclick="showScreen('screen-donor-dashboard')" style="background:rgba(255,255,255,0.2);border:none;color:white;padding:8px 12px;border-radius:10px;cursor:pointer;">← Back</button>
+    <h1>Profile</h1>
+    <div style="width:60px;"></div>
+  </div>
+  <div class="content">
+    <div class="card">
+      <div class="card-title">Profile Information</div>
+      <div class="form-group"><label>Name</label><input type="text" class="fr-input" value="Fatima"/></div>
+      <div class="form-group"><label>Phone</label><input type="text" class="fr-input" value="+92-316-9544199"/></div>
+      <div class="form-group"><label>Address</label><input type="text" class="fr-input" value="Islamabad"/></div>
+      <div class="form-group"><label>Organization Name</label><input type="text" class="fr-input" value=""/></div>
+      <button class="btn btn-green">Save Changes</button>
+    </div>
+    <div class="card" style="margin-top:12px;">
+      <div class="card-title">Change Password</div>
+      <div class="form-group"><label>Current Password</label><input type="password" class="fr-input"/></div>
+      <div class="form-group"><label>New Password</label><input type="password" class="fr-input"/></div>
+      <div class="form-group"><label>Confirm New Password</label><input type="password" class="fr-input"/></div>
+      <button class="btn btn-green">Change Password</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOGOUT MODAL -->
+<div class="modal-bg" id="logoutModal">
+  <div class="modal-sheet">
+    <h3>Are you sure you want to logout?</h3>
+    <p>You will need to login again to access your account.</p>
+    <div class="modal-btns">
+      <button class="btn" style="background:#e5e7eb;color:#374151;" onclick="document.getElementById('logoutModal').classList.remove('show')">No, Stay</button>
+      <button class="btn btn-green" onclick="showScreen('screen-login')">Yes, Logout</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// ── State ────────────────────────────────────────────────────────────────────
+let currentRole = 'donor';
+let listings = [];
+let claims = [];
+
+const dummyListings = [
+  {id:1,name:'Fresh Biryani (Large Portion)',cat:'cooked',qty:'15kg',addr:'F-7',ago:'22 minutes ago',photo:''},
+  {id:2,name:'Assorted Fresh Bread & Pastries',cat:'bakery',qty:'50 pieces',addr:'F-7',ago:'22 minutes ago',photo:''},
+  {id:3,name:'Buffet Leftover — Mixed Items',cat:'packaged',qty:'25kg',addr:'G-9',ago:'22 minutes ago',photo:''},
+  {id:4,name:'Fresh Vegetables & Fruits',cat:'raw',qty:'30kg',addr:'G-6',ago:'22 minutes ago',photo:''},
+  {id:5,name:'Chicken Karahi & Naan',cat:'cooked',qty:'12kg',addr:'F-10',ago:'22 minutes ago',photo:''},
+];
+
+// ── Navigation ────────────────────────────────────────────────────────────────
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+  if(id==='screen-live-feed') renderFeed('all');
+  if(id==='screen-donor-analytics') renderCharts();
+  if(id==='screen-ngo-pending') startCountdown();
+}
+
+function setRole(role){
+  currentRole = role;
+}
+
+function showLogout(){
+  document.getElementById('logoutModal').classList.add('show');
+}
+
+// ── Login ─────────────────────────────────────────────────────────────────────
+function doLogin(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPass').value.trim();
+  if(!email||!pass){alert('Please enter email and password.');return;}
+  // Demo: ngo if email contains 'ngo', else donor
+  if(email.toLowerCase().includes('ngo')){
+    currentRole='ngo';
+    showScreen('screen-ngo-dashboard');
+  } else {
+    currentRole='donor';
+    showScreen('screen-donor-dashboard');
+  }
+}
+
+// ── NGO Countdown Timer ───────────────────────────────────────────────────────
+function startCountdown(){
+  let seconds = 15;
+  const total = 15;
+  const circumference = 326.7;
+  const circle = document.getElementById('countdown-circle');
+  const numEl = document.getElementById('countdown-num');
+  const bar = document.getElementById('countdown-bar');
+  const msg = document.getElementById('countdown-msg');
+  const messages = {
+    15: 'Verifying organization details...',
+    10: 'Checking registration number...',
+    5:  'Almost done...',
+    0:  'Verification complete!'
+  };
+
+  // reset
+  circle.style.strokeDashoffset = '0';
+  bar.style.width = '0%';
+  numEl.textContent = seconds;
+  msg.textContent = messages[15];
+
+  const timer = setInterval(() => {
+    seconds--;
+    if(seconds < 0){ clearInterval(timer); return; }
+
+    numEl.textContent = seconds;
+    const progress = (total - seconds) / total;
+    circle.style.strokeDashoffset = circumference * progress;
+    bar.style.width = (progress * 100) + '%';
+
+    if(messages[seconds]) msg.textContent = messages[seconds];
+
+    if(seconds === 0){
+      clearInterval(timer);
+      setTimeout(() => {
+        showScreen('screen-login');
+        // show success banner
+        const banner = document.createElement('div');
+        banner.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#16a34a;color:white;padding:12px 20px;border-radius:12px;font-size:13px;font-weight:600;z-index:999;box-shadow:0 4px 12px rgba(0,0,0,0.2);max-width:340px;text-align:center;';
+        banner.textContent = '✅ Account approved! You can now login to FoodRescue.pk';
+        document.body.appendChild(banner);
+        setTimeout(() => banner.remove(), 4000);
+      }, 800);
+    }
+  }, 1000);
+}
+
+// ── Counter animation ─────────────────────────────────────────────────────────
+function animateCounter(el,target,duration=1500){
+  let start=0; const step=target/60;
+  const timer=setInterval(()=>{
+    start+=step; el.textContent=Math.floor(start).toLocaleString();
+    if(start>=target){el.textContent=target.toLocaleString();clearInterval(timer);}
+  },duration/60);
+}
+animateCounter(document.getElementById('mealCounter'),8564,2000);
+
+// ── Listing submit ────────────────────────────────────────────────────────────
+function submitListing(){
+  const name=document.getElementById('fn-name').value.trim();
+  const cat=document.getElementById('fn-cat').value;
+  const qty=document.getElementById('fn-qty').value.trim();
+  const addr=document.getElementById('fn-addr').value.trim();
+  if(!name||!qty||!addr){alert('Please fill in required fields.');return;}
+  const listing={id:Date.now(),name,cat,qty,addr,ago:'Just now',status:'active',photo:''};
+  listings.push(listing);
+  updateDonorStats();
+  renderMyListings();
+  showScreen('screen-donor-dashboard');
+}
+
+function updateDonorStats(){
+  const active=listings.filter(l=>l.status==='active').length;
+  const completed=listings.filter(l=>l.status==='completed').length;
+  document.getElementById('d-total').textContent=listings.length;
+  document.getElementById('d-active').textContent=active;
+  document.getElementById('d-done').textContent=completed;
+  document.getElementById('d-meals').textContent=completed*20;
+  renderRecentListings();
+}
+
+function renderRecentListings(){
+  const container=document.getElementById('donor-recent-listings');
+  if(!listings.length){
+    container.innerHTML='<div class="empty"><span class="ei">📭</span><p>No listings yet.</p><button class="btn btn-green" style="width:auto;padding:10px 20px;" onclick="showScreen(\'screen-post-listing\')">Post Your First Listing</button></div>';
+    return;
+  }
+  container.innerHTML=listings.slice(-3).reverse().map(l=>`
+    <div class="card" style="padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div><div style="font-weight:700;font-size:14px;">${l.name}</div><div style="font-size:12px;color:var(--muted);">📍 ${l.addr} • ${l.qty}</div></div>
+        <span class="badge badge-${l.status||'active'}">${(l.status||'active').charAt(0).toUpperCase()+(l.status||'active').slice(1)}</span>
+      </div>
+    </div>`).join('');
+}
+
+function renderMyListings(filter='all'){
+  const container=document.getElementById('my-listings-container');
+  const filtered=filter==='all'?listings:listings.filter(l=>l.status===filter);
+  if(!filtered.length){
+    container.innerHTML='<div class="empty"><span class="ei">📭</span><p>No listings found.</p></div>';return;
+  }
+  container.innerHTML=filtered.map(l=>`
+    <div class="listing-card" data-status="${l.status||'active'}">
+      <div class="food-ph">🍱</div>
+      <div class="lc-body">
+        <div class="lc-name">${l.name}</div>
+        <span class="badge badge-${l.cat}" style="margin-bottom:6px;">${l.cat.charAt(0).toUpperCase()+l.cat.slice(1)}</span>
+        <div class="lc-meta"><span>📦 ${l.qty}</span><span>📍 ${l.addr}</span></div>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <span class="badge badge-${l.status||'active'}">${(l.status||'active').charAt(0).toUpperCase()+(l.status||'active').slice(1)}</span>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function filterListings(filter,btn){
+  document.querySelectorAll('#listing-filter-chips .chip').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active');
+  renderMyListings(filter);
+}
+
+// ── Feed ──────────────────────────────────────────────────────────────────────
+function renderFeed(cat='all'){
+  const allListings=[...dummyListings,...listings.filter(l=>!l.status||l.status==='active').map(l=>({...l,name:l.name,cat:l.cat,qty:l.qty,addr:l.addr,ago:l.ago||'Just now'}))];
+  const filtered=cat==='all'?allListings:allListings.filter(l=>l.cat===cat);
+  const container=document.getElementById('feed-container');
+  if(!filtered.length){container.innerHTML='<div class="empty"><span class="ei">🍽️</span><p>No listings available right now.</p></div>';return;}
+  container.innerHTML=filtered.map(l=>`
+    <div class="listing-card">
+      <div class="food-ph">🍱</div>
+      <div class="lc-body">
+        <div class="lc-name">${l.name}</div>
+        <span class="badge badge-${l.cat}" style="margin-bottom:8px;">${l.cat.charAt(0).toUpperCase()+l.cat.slice(1)}</span>
+        <div class="lc-meta">
+          <span>📦 Quantity: ${l.qty}</span>
+          <span>📍 Pickup: ${l.addr}</span>
+          <span>🕐 Posted ${l.ago}</span>
+        </div>
+        <button class="btn btn-green" style="margin-top:10px;font-size:13px;padding:10px;" onclick="claimFood('${l.name}')">View Details</button>
+      </div>
+    </div>`).join('');
+}
+
+function filterFeed(cat,btn){
+  document.querySelectorAll('#feed-chips .chip').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active');
+  renderFeed(cat);
+}
+
+function claimFood(name){
+  if(confirm(`Claim "${name}"?\n\nThis will notify the donor.`)){
+    claims.push({name,status:'active',time:'Scheduled for today',donor:'Golden Fork Restaurant'});
+    updateClaimsUI();
+    showScreen('screen-ngo-dashboard');
+    alert('✅ Food claimed successfully! Donor has been notified.');
+  }
+}
+
+function updateClaimsUI(){
+  const active=claims.filter(c=>c.status==='active').length;
+  const pct=Math.round((active/5)*100);
+  document.getElementById('claims-count-label').textContent=`${active} of 5 active claims`;
+  document.getElementById('claims-prog').style.width=pct+'%';
+  renderClaims();
+}
+
+function renderClaims(filter='all'){
+  const container=document.getElementById('claims-container');
+  const filtered=filter==='all'?claims:claims.filter(c=>c.status===filter);
+  if(!filtered.length){container.innerHTML='<div class="empty"><span class="ei">🤝</span><p>No claims found.</p></div>';return;}
+  container.innerHTML=filtered.map((c,i)=>`
+    <div class="card" style="padding:14px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+        <div><div style="font-weight:700;font-size:14px;">${c.name}</div><div style="font-size:12px;color:var(--muted);">Donor: ${c.donor} • ${c.time}</div></div>
+        <span class="badge badge-${c.status}">${c.status.charAt(0).toUpperCase()+c.status.slice(1)}</span>
+      </div>
+      ${c.status==='active'?`<div style="display:flex;gap:8px;">
+        <button class="btn btn-green btn-sm" onclick="completeClaim(${i})">✅ Complete</button>
+        <button class="btn btn-danger btn-sm" onclick="cancelClaim(${i})">Cancel</button>
+      </div>`:''}
+    </div>`).join('');
+}
+
+function completeClaim(i){
+  if(confirm('Confirm you collected this food?')){
+    claims[i].status='completed';
+    updateClaimsUI();
+    alert('✅ Pickup completed! Donor has been notified.');
+  }
+}
+
+function cancelClaim(i){
+  if(confirm('Cancel this claim?')){
+    claims[i].status='cancelled';
+    updateClaimsUI();
+  }
+}
+
+function filterClaims(f,btn){
+  document.querySelectorAll('#screen-my-claims .chip').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active');
+  renderClaims(f);
+}
+
+// ── Photo preview ─────────────────────────────────────────────────────────────
+function previewPhoto(input){
+  if(input.files&&input.files[0]){
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const prev=document.getElementById('fn-preview');
+      prev.src=e.target.result;prev.style.display='block';
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+// ── Charts ────────────────────────────────────────────────────────────────────
+let chartsInit=false;
+function renderCharts(){
+  if(chartsInit)return;chartsInit=true;
+  new Chart(document.getElementById('mobileMonthlyChart'),{
+    type:'bar',
+    data:{labels:['Jan','Feb','Mar','Apr','May'],datasets:[{label:'Listings',data:[3,5,7,6,10],backgroundColor:'#16a34a',borderRadius:4}]},
+    options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}
+  });
+  new Chart(document.getElementById('mobileCatChart'),{
+    type:'pie',
+    data:{labels:['Cooked','Packaged','Raw','Bakery'],datasets:[{data:[12,8,5,3],backgroundColor:['#16a34a','#3b82f6','#f59e0b','#ef4444']}]},
+    options:{responsive:true,plugins:{legend:{position:'bottom'}}}
+  });
+}
+</script>
+</body>
+</html>
